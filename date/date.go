@@ -17,12 +17,6 @@ type GetMonth interface {
 	GetMonth(nth time.Month) Month
 }
 
-// type GetWeek interface {
-// 	GetWeek(nth int) Week
-// }
-
-///
-
 type DateRange struct {
 	start, end time.Time
 }
@@ -33,11 +27,27 @@ func (dr DateRange) String() string {
 
 type Day struct {
 	DateRange
+
+	OffsetFromOriginal int
 }
 
-// type Week struct {
-// 	DateRange
-// }
+func (d Day) AddDay(offset int) Day {
+	return Day{
+		DateRange: DateRange{
+			start: d.start.AddDate(0, 0, offset),
+			end:   d.end.AddDate(0, 0, offset),
+		},
+		OffsetFromOriginal: d.OffsetFromOriginal + offset,
+	}
+}
+
+func (d Day) Date() string {
+	return fmt.Sprintf("%d-%02d-%02d", d.start.Year(), d.start.Month(), d.start.Day())
+}
+
+func (d Day) String() string {
+	return fmt.Sprintf("%s, offset: %d", d.DateRange, d.OffsetFromOriginal)
+}
 
 type Year struct {
 	DateRange
@@ -67,24 +77,6 @@ func (y Year) GetMonth(nth time.Month) Month {
 	}
 }
 
-// wait, what?
-// I dont think it is good idea for year have get week because
-// the first day of this year is in the 0 week? or first week
-// func (y *Year) GetWeek(nth int) Week {
-// 	m := y.start.AddDate(0, 0, 7)
-// 	return Week{
-// 		DateRange: DateRange{
-// 			start: m,
-// 			end:   m.AddDate(0, 0, 7).Add(time.Nanosecond * -1),
-// 		},
-// 	}
-// }
-
-// same reason of getweek of year
-// func (m *Month) GetWeek(nth int) {
-
-// }
-
 type Month struct {
 	DateRange
 }
@@ -106,7 +98,7 @@ func (m Month) GetDay(nth int) Day {
 func (m Month) GetWeekDay(nth time.Weekday) []Day {
 	result := []Day{}
 	var nextWeekdayStart time.Time
-	if offset := m.start.Weekday() - nth; offset < 0 {
+	if offset := m.start.Weekday() - nth; offset <= 0 {
 		// month start weekday before the weekday we want
 		nextWeekdayStart = m.start.AddDate(0, 0, -int(offset))
 	} else {
