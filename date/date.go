@@ -25,6 +25,22 @@ func (dr DateRange) String() string {
 	return fmt.Sprintf("start from %s to %s", dr.start.UTC(), dr.end.UTC())
 }
 
+func (dr DateRange) HasWeekends() bool {
+	start := dr.start
+	end := dr.end
+
+	for {
+		if start.Before(end) {
+			if start.Weekday() == time.Saturday || start.Weekday() == time.Sunday {
+				return true
+			}
+			start = start.AddDate(0, 0, 1)
+		} else {
+			return false
+		}
+	}
+}
+
 type Day struct {
 	DateRange
 
